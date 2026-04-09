@@ -8,6 +8,7 @@ import { ProtectedRoute, PublicOnlyRoute } from "@/components/auth/ProtectedRout
 import { AppLayout } from "@/components/layout/AppLayout";
 import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
+import AuthCallback from "./pages/AuthCallback";
 import Dashboard from "./pages/Dashboard";
 import CollegeLeaderboard from "./pages/CollegeLeaderboard";
 import GlobalLeaderboard from "./pages/GlobalLeaderboard";
@@ -36,6 +37,7 @@ const App = () => (
         <AuthProvider>
           <Routes>
             <Route path="/" element={<PublicOnlyRoute><LandingPage /></PublicOnlyRoute>} />
+            <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/login" element={<PublicOnlyRoute><LoginPage /></PublicOnlyRoute>} />
             <Route path="/dashboard" element={<ProtectedApp><Dashboard /></ProtectedApp>} />
             <Route path="/college-leaderboard" element={<ProtectedApp><CollegeLeaderboard /></ProtectedApp>} />
