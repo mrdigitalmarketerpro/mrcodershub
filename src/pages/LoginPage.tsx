@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Zap, LogOut } from "lucide-react";
-import { lovable } from "@/integrations/lovable";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthStore } from "@/stores/authStore";
 
@@ -14,19 +13,22 @@ export default function LoginPage() {
     setLoading(true);
     setError(null);
     try {
-      const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin,
+      const { error: oauthError } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: window.location.origin + "/dashboard",
+        },
       });
-      if (result.error) {
+      if (oauthError) {
         setError("Login failed. Please try again.");
+        setLoading(false);
       }
+      // Browser will redirect to Google — no need to setLoading(false) on success
     } catch {
       setError("Something went wrong. Please try again.");
-    } finally {
       setLoading(false);
     }
   };
-
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
