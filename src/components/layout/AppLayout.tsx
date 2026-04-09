@@ -15,7 +15,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       <div className="min-h-screen bg-background">
         <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
           <SheetContent side="left" className="p-0 w-[260px] bg-sidebar border-r border-border">
-            <AppSidebar collapsed={false} onToggle={() => setMobileOpen(false)} />
+            <AppSidebar collapsed={false} onToggle={() => setMobileOpen(false)} embedded />
           </SheetContent>
         </Sheet>
         <div className="flex flex-col min-h-screen">
