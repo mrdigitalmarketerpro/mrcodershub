@@ -13,6 +13,7 @@ function RevealSection({ children, className = "", delay = 0, id }: { children: 
   const inView = useInView(ref, { once: true, margin: "-80px" });
   return (
     <motion.section
+      id={id}
       ref={ref}
       initial={{ opacity: 0, y: 60 }}
       animate={inView ? { opacity: 1, y: 0 } : {}}
