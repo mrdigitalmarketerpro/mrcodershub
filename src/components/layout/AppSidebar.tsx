@@ -1,9 +1,9 @@
-import { useState } from "react";
 import { useLocation, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, Trophy, Globe, Activity, Brain, User, Settings, ChevronLeft, ChevronRight, Zap
 } from "lucide-react";
+import { LogoutButton } from "@/pages/LoginPage";
 
 const navItems = [
   { label: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
