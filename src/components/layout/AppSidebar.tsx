@@ -22,7 +22,8 @@ export function AppSidebar({ collapsed, onToggle }: { collapsed: boolean; onTogg
     <motion.aside
       animate={{ width: collapsed ? 72 : 240 }}
       transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
-      className="fixed left-0 top-0 h-screen z-40 flex flex-col border-r border-border bg-sidebar overflow-hidden"
+      className="h-full flex flex-col border-r border-border bg-sidebar overflow-hidden"
+      style={{ position: "inherit" }}
     >
       {/* Logo */}
       <div className="h-16 flex items-center px-4 gap-3 border-b border-border">
