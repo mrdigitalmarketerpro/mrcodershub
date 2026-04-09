@@ -4,11 +4,11 @@ import { motion, useScroll, useTransform, useInView } from "framer-motion";
 import {
   Zap, Trophy, Activity, Brain, Swords, TrendingUp, ArrowRight,
   Eye, BarChart3, Target, Users, Flame, ChevronDown, Sparkles,
-  GitBranch, Code2, Shield
+  Code2, Shield
 } from "lucide-react";
 
 /* ─── Scroll-animated section wrapper ─── */
-function RevealSection({ children, className = "", delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) {
+function RevealSection({ children, className = "", delay = 0, id }: { children: React.ReactNode; className?: string; delay?: number; id?: string }) {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: "-80px" });
   return (
