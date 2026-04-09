@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthStore } from "@/stores/authStore";
 
@@ -13,14 +14,21 @@ async function fetchProfile(userId: string) {
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { setUser, setProfile, setLoading, clear } = useAuthStore();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    // 1. Set up listener FIRST (before getSession)
+    // 1. Set up listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        if (event === "SIGNED_OUT" || event === "TOKEN_REFRESHED" && !session) {
+          clear();
+          navigate("/", { replace: true });
+          return;
+        }
+
         if (session?.user) {
           setUser(session.user);
-          // Defer profile fetch to avoid Supabase deadlock
+          // Defer to avoid Supabase auth deadlock
           setTimeout(async () => {
             const profile = await fetchProfile(session.user.id);
             setProfile(profile);
@@ -32,7 +40,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     );
 
-    // 2. Then check existing session
+    // 2. Then hydrate from existing session
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session?.user) {
         setUser(session.user);
