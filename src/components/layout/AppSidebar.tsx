@@ -15,15 +15,14 @@ const navItems = [
   { label: "Settings", icon: Settings, path: "/settings" },
 ];
 
-export function AppSidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => void }) {
+export function AppSidebar({ collapsed, onToggle, embedded }: { collapsed: boolean; onToggle: () => void; embedded?: boolean }) {
   const location = useLocation();
 
   return (
     <motion.aside
       animate={{ width: collapsed ? 72 : 240 }}
       transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
-      className="h-full flex flex-col border-r border-border bg-sidebar overflow-hidden"
-      style={{ position: "inherit" }}
+      className={`h-screen flex flex-col border-r border-border bg-sidebar overflow-hidden ${embedded ? "" : "fixed left-0 top-0 z-40"}`}
     >
       {/* Logo */}
       <div className="h-16 flex items-center px-4 gap-3 border-b border-border">
