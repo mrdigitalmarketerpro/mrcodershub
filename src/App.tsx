@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AppLayout } from "@/components/layout/AppLayout";
+import LandingPage from "./pages/LandingPage";
 import Dashboard from "./pages/Dashboard";
 import CollegeLeaderboard from "./pages/CollegeLeaderboard";
 import GlobalLeaderboard from "./pages/GlobalLeaderboard";
@@ -22,7 +23,8 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<AppLayout><Dashboard /></AppLayout>} />
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/dashboard" element={<AppLayout><Dashboard /></AppLayout>} />
           <Route path="/college-leaderboard" element={<AppLayout><CollegeLeaderboard /></AppLayout>} />
           <Route path="/global-leaderboard" element={<AppLayout><GlobalLeaderboard /></AppLayout>} />
           <Route path="/activity" element={<AppLayout><ActivityFeed /></AppLayout>} />

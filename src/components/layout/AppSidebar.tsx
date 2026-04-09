@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 
 const navItems = [
-  { label: "Dashboard", icon: LayoutDashboard, path: "/" },
+  { label: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
   { label: "College Board", icon: Trophy, path: "/college-leaderboard" },
   { label: "Global Board", icon: Globe, path: "/global-leaderboard" },
   { label: "Activity Feed", icon: Activity, path: "/activity" },
