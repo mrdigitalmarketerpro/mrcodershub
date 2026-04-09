@@ -226,7 +226,7 @@ export default function LandingPage() {
           <a href="#insights" className="hover:text-foreground transition-colors">AI Insights</a>
         </div>
         <Link
-          to="/dashboard"
+          to="/login"
           className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors"
         >
           Get Started
@@ -278,7 +278,7 @@ export default function LandingPage() {
             className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4"
           >
             <Link
-              to="/dashboard"
+              to="/login"
               className="group px-8 py-3.5 rounded-xl bg-primary text-primary-foreground font-semibold text-base flex items-center gap-2 hover:shadow-[0_0_30px_hsl(263_70%_58%/0.3)] transition-all duration-300"
             >
               Get Started
@@ -432,7 +432,7 @@ export default function LandingPage() {
             Stop guessing. Start growing. Your rank awaits.
           </p>
           <Link
-            to="/dashboard"
+            to="/login"
             className="group inline-flex items-center gap-2 px-10 py-4 rounded-xl bg-primary text-primary-foreground font-bold text-lg hover:shadow-[0_0_40px_hsl(263_70%_58%/0.35)] transition-all duration-300"
           >
             Start Your Journey

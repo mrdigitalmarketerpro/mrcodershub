@@ -1,9 +1,9 @@
-import { useState } from "react";
 import { useLocation, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, Trophy, Globe, Activity, Brain, User, Settings, ChevronLeft, ChevronRight, Zap
 } from "lucide-react";
+import { LogoutButton } from "@/pages/LoginPage";
 
 const navItems = [
   { label: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
@@ -84,13 +84,20 @@ export function AppSidebar({ collapsed, onToggle, embedded }: { collapsed: boole
         })}
       </nav>
 
-      {/* Collapse toggle */}
-      <button
-        onClick={onToggle}
-        className="h-12 flex items-center justify-center border-t border-border text-muted-foreground hover:text-foreground transition-colors"
-      >
-        {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
-      </button>
+      {/* Logout + Collapse toggle */}
+      <div className="border-t border-border">
+        {!collapsed && (
+          <div className="px-3 py-2">
+            <LogoutButton />
+          </div>
+        )}
+        <button
+          onClick={onToggle}
+          className="h-12 w-full flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+        >
+          {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+        </button>
+      </div>
     </motion.aside>
   );
 }
