@@ -18,9 +18,9 @@ export default function SettingsPage() {
   const profile = useAuthStore((s) => s.profile);
   const setProfile = useAuthStore((s) => s.setProfile);
   const { data: platforms, isLoading } = usePlatformProfiles();
-  const linkPlatform = useLinkPlatform();
-  const unlinkPlatform = useUnlinkPlatform();
-  const sync = useSync();
+  const linkPlatformMutation = useLinkPlatform();
+  const unlinkPlatformMutation = useUnlinkPlatform();
+  const syncMutation = useSync();
 
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);

@@ -52,11 +52,11 @@ export default function Dashboard() {
           </p>
         </div>
         <button
-          onClick={() => sync.mutate()}
-          disabled={sync.isPending}
+          onClick={() => syncMutation.mutate()}
+          disabled={syncMutation.isPending}
           className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary/10 text-primary text-sm font-medium hover:bg-primary/20 transition-colors disabled:opacity-50"
         >
-          {sync.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+          {syncMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
           Refresh Data
         </button>
       </div>

@@ -17,8 +17,8 @@ export default function OnboardingPage() {
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
   const setProfile = useAuthStore((s) => s.setProfile);
-  const linkPlatform = useLinkPlatform();
-  const sync = useSync();
+  const linkPlatformMutation = useLinkPlatform();
+  const syncMutation = useSync();
 
   const [handles, setHandles] = useState<Record<string, string>>({ leetcode: "", gfg: "", hackerrank: "" });
   const [displayName, setDisplayName] = useState(user?.user_metadata?.full_name || "");
@@ -62,12 +62,12 @@ export default function OnboardingPage() {
       // Link platforms
       for (const [platform, handle] of Object.entries(handles)) {
         if (handle.trim()) {
-          await linkPlatform.mutateAsync({ platform, handle: handle.trim() });
+          await linkPlatformMutation.mutateAsync({ platform, handle: handle.trim() });
         }
       }
 
       // Trigger sync
-      await sync.mutateAsync();
+      await syncMutation.mutateAsync(undefined);
 
       // Mark onboarded
       const profile = await updateProfile(user!.id, { onboarded: true });
