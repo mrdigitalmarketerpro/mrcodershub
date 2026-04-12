@@ -37,7 +37,7 @@ export function AppSidebar({ collapsed, onToggle, embedded }: { collapsed: boole
               exit={{ opacity: 0 }}
               className="font-bold text-lg text-foreground whitespace-nowrap"
             >
-              Coders<span className="text-gradient">Hub</span>
+              MR<span className="text-gradient">CodersHub</span>
             </motion.span>
           )}
         </AnimatePresence>

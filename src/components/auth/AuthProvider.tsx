@@ -28,11 +28,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         if (session?.user) {
           setUser(session.user);
-          // Defer to avoid Supabase auth deadlock
           setTimeout(async () => {
             const profile = await fetchProfile(session.user.id);
             setProfile(profile);
             setLoading(false);
+            // Redirect to onboarding if not onboarded
+            if (profile && !profile.onboarded && event === "SIGNED_IN") {
+              navigate("/onboarding", { replace: true });
+            }
           }, 0);
         } else {
           clear();
