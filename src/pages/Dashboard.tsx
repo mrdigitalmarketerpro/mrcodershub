@@ -52,7 +52,7 @@ export default function Dashboard() {
           </p>
         </div>
         <button
-          onClick={() => syncMutation.mutate()}
+          onClick={() => syncMutation.mutate(undefined)}
           disabled={syncMutation.isPending}
           className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary/10 text-primary text-sm font-medium hover:bg-primary/20 transition-colors disabled:opacity-50"
         >

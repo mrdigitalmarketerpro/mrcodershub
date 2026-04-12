@@ -62,11 +62,11 @@ export default function SettingsPage() {
       for (const [platform, handle] of Object.entries(handles)) {
         const existing = platforms?.find(p => p.platform === platform);
         if (handle.trim() && !existing) {
-          await linkPlatform.mutateAsync({ platform, handle: handle.trim() });
+          await linkPlatformMutation.mutateAsync({ platform, handle: handle.trim() });
         } else if (handle.trim() && existing && existing.handle !== handle.trim()) {
-          await linkPlatform.mutateAsync({ platform, handle: handle.trim() });
+          await linkPlatformMutation.mutateAsync({ platform, handle: handle.trim() });
         } else if (!handle.trim() && existing) {
-          await unlinkPlatform.mutateAsync(platform);
+          await unlinkPlatformMutation.mutateAsync(platform);
         }
       }
 
@@ -112,11 +112,11 @@ export default function SettingsPage() {
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-semibold text-foreground">Platform Connections</h3>
           <button
-            onClick={() => sync.mutate()}
-            disabled={sync.isPending}
+            onClick={() => syncMutation.mutate()}
+            disabled={syncMutation.isPending}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20 transition-colors disabled:opacity-50"
           >
-            {sync.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
+            {syncMutation.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
             Sync All
           </button>
         </div>
@@ -144,7 +144,7 @@ export default function SettingsPage() {
                     <button
                       onClick={() => {
                         setHandles(prev => ({ ...prev, [pc.key]: "" }));
-                        unlinkPlatform.mutate(pc.key);
+                        unlinkPlatformMutation.mutate(pc.key);
                       }}
                       className="px-2 rounded-lg text-destructive hover:bg-destructive/10 transition-colors"
                     >
