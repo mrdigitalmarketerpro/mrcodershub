@@ -2,7 +2,7 @@ import { GlassCard } from "@/components/GlassCard";
 import { useAuthStore } from "@/stores/authStore";
 import { usePlatformProfiles, useUserScore, useLeaderboard, useSync, useSnapshots } from "@/hooks/usePlatformData";
 import { Zap, TrendingUp, Trophy, ArrowUp, ArrowDown, RefreshCw, Loader2, Link as LinkIcon } from "lucide-react";
-import { motion } from "framer-motion";
+
 import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
@@ -13,7 +13,7 @@ export default function Dashboard() {
   const { data: score, isLoading: scoreLoading } = useUserScore();
   const { data: leaderboard } = useLeaderboard();
   const { data: snapshots } = useSnapshots();
-  const sync = useSync();
+  const syncMutation = useSync();
 
   const linkedPlatforms = platforms?.filter(p => p.sync_status === "success") || [];
   const totalSolved = linkedPlatforms.reduce((s, p) => s + (p.problems_solved || 0), 0);

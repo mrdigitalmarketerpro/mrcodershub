@@ -106,7 +106,16 @@ export async function getUserSnapshots(userId: string) {
 }
 
 // ─── Profile ───
-export async function updateProfile(userId: string, updates: Record<string, any>) {
+export async function updateProfile(userId: string, updates: {
+  display_name?: string | null;
+  username?: string | null;
+  college?: string | null;
+  leetcode_handle?: string | null;
+  gfg_handle?: string | null;
+  hackerrank_handle?: string | null;
+  github_username?: string | null;
+  onboarded?: boolean;
+}) {
   const { data, error } = await supabase
     .from("profiles")
     .update(updates)
