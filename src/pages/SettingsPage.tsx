@@ -112,7 +112,7 @@ export default function SettingsPage() {
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-semibold text-foreground">Platform Connections</h3>
           <button
-            onClick={() => syncMutation.mutate()}
+            onClick={() => syncMutation.mutate(undefined)}
             disabled={syncMutation.isPending}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20 transition-colors disabled:opacity-50"
           >
