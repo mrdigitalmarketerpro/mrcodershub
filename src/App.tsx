@@ -9,6 +9,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
 import AuthCallback from "./pages/AuthCallback";
+import OnboardingPage from "./pages/OnboardingPage";
 import Dashboard from "./pages/Dashboard";
 import CollegeLeaderboard from "./pages/CollegeLeaderboard";
 import GlobalLeaderboard from "./pages/GlobalLeaderboard";
@@ -39,6 +40,7 @@ const App = () => (
             <Route path="/" element={<PublicOnlyRoute><LandingPage /></PublicOnlyRoute>} />
             <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/login" element={<PublicOnlyRoute><LoginPage /></PublicOnlyRoute>} />
+            <Route path="/onboarding" element={<ProtectedRoute><OnboardingPage /></ProtectedRoute>} />
             <Route path="/dashboard" element={<ProtectedApp><Dashboard /></ProtectedApp>} />
             <Route path="/college-leaderboard" element={<ProtectedApp><CollegeLeaderboard /></ProtectedApp>} />
             <Route path="/global-leaderboard" element={<ProtectedApp><GlobalLeaderboard /></ProtectedApp>} />
