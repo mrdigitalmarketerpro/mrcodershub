@@ -1,34 +1,53 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Zap, LogOut } from "lucide-react";
+import { Zap, LogOut, Mail, Lock, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthStore } from "@/stores/authStore";
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isSignUp, setIsSignUp] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const handleEmailAuth = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    try {
+      if (isSignUp) {
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: { emailRedirectTo: window.location.origin + "/auth/callback" },
+        });
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+      }
+    } catch (err: any) {
+      setError(err.message || "Authentication failed");
+      setLoading(false);
+    }
+  };
 
   const handleGoogleLogin = async () => {
     setLoading(true);
     setError(null);
-    try {
-      const { error: oauthError } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: window.location.origin + "/auth/callback",
-        },
-      });
-      if (oauthError) {
-        setError("Login failed. Please try again.");
-        setLoading(false);
-      }
-      // Browser will redirect to Google — no need to setLoading(false) on success
-    } catch {
-      setError("Something went wrong. Please try again.");
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: window.location.origin + "/auth/callback" },
+    });
+    if (error) {
+      setError("Google login failed");
       setLoading(false);
     }
   };
+
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -47,10 +66,10 @@ export default function LoginPage() {
           </div>
         </div>
         <h1 className="text-2xl font-bold text-foreground mb-1">
-          Welcome to Coders<span className="text-gradient">Hub</span>
+          Welcome to MR<span className="text-gradient">CodersHub</span>
         </h1>
-        <p className="text-muted-foreground text-sm mb-8">
-          Sign in to start competing
+        <p className="text-muted-foreground text-sm mb-6">
+          {isSignUp ? "Create your account" : "Sign in to start competing"}
         </p>
 
         {error && (
@@ -58,6 +77,51 @@ export default function LoginPage() {
             {error}
           </div>
         )}
+
+        <form onSubmit={handleEmailAuth} className="space-y-3 mb-4 text-left">
+          <div>
+            <label className="text-xs text-muted-foreground mb-1 block">Email</label>
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                placeholder="you@example.com"
+                className="w-full pl-10 pr-3 py-2.5 rounded-lg bg-muted/50 border border-border text-sm text-foreground focus:outline-none focus:border-primary/50 transition-colors"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="text-xs text-muted-foreground mb-1 block">Password</label>
+            <div className="relative">
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={6}
+                placeholder="••••••••"
+                className="w-full pl-10 pr-3 py-2.5 rounded-lg bg-muted/50 border border-border text-sm text-foreground focus:outline-none focus:border-primary/50 transition-colors"
+              />
+            </div>
+          </div>
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-semibold flex items-center justify-center gap-2 hover:opacity-90 transition-opacity disabled:opacity-50"
+          >
+            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+            {isSignUp ? "Sign Up" : "Sign In"}
+          </button>
+        </form>
+
+        <div className="relative my-4">
+          <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-border" /></div>
+          <div className="relative flex justify-center"><span className="bg-background px-3 text-xs text-muted-foreground">or</span></div>
+        </div>
 
         <button
           onClick={handleGoogleLogin}
@@ -70,10 +134,17 @@ export default function LoginPage() {
             <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
             <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
           </svg>
-          {loading ? "Signing in..." : "Continue with Google"}
+          Continue with Google
         </button>
 
-        <p className="mt-6 text-xs text-muted-foreground">
+        <button
+          onClick={() => { setIsSignUp(!isSignUp); setError(null); }}
+          className="mt-4 text-sm text-muted-foreground hover:text-foreground transition-colors"
+        >
+          {isSignUp ? "Already have an account? Sign in" : "Don't have an account? Sign up"}
+        </button>
+
+        <p className="mt-4 text-xs text-muted-foreground">
           By signing in, you agree to our Terms of Service
         </p>
       </motion.div>

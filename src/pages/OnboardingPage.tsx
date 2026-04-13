@@ -3,8 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Zap, Check, ArrowRight, Loader2 } from "lucide-react";
 import { useAuthStore } from "@/stores/authStore";
-import { useLinkPlatform, useSync } from "@/hooks/usePlatformData";
-import { updateProfile } from "@/lib/api";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 const platforms = [
@@ -17,68 +16,63 @@ export default function OnboardingPage() {
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
   const setProfile = useAuthStore((s) => s.setProfile);
-  const linkPlatformMutation = useLinkPlatform();
-  const syncMutation = useSync();
 
   const [handles, setHandles] = useState<Record<string, string>>({ leetcode: "", gfg: "", hackerrank: "" });
-  const [displayName, setDisplayName] = useState(user?.user_metadata?.full_name || "");
+  const [displayName, setDisplayName] = useState(user?.user_metadata?.full_name || user?.user_metadata?.name || "");
   const [college, setCollege] = useState("Galgotias University");
-  const [step, setStep] = useState(0); // 0: profile info, 1: platforms, 2: syncing
+  const [step, setStep] = useState(0);
   const [saving, setSaving] = useState(false);
 
   const linkedCount = Object.values(handles).filter(h => h.trim()).length;
 
-  const handleProfileSave = async () => {
-    if (!displayName.trim()) {
-      toast.error("Please enter your display name");
-      return;
-    }
-    setSaving(true);
-    try {
-      await updateProfile(user!.id, {
-        display_name: displayName.trim(),
-        college: college.trim(),
-        leetcode_handle: handles.leetcode.trim() || null,
-        gfg_handle: handles.gfg.trim() || null,
-        hackerrank_handle: handles.hackerrank.trim() || null,
-      });
+  const handleSaveAndSync = async () => {
+    if (step === 0) {
+      if (!displayName.trim()) { toast.error("Please enter your display name"); return; }
       setStep(1);
-    } catch (err) {
-      toast.error("Failed to save profile");
-    }
-    setSaving(false);
-  };
-
-  const handleLinkAndSync = async () => {
-    if (linkedCount === 0) {
-      toast.error("Link at least one coding platform");
       return;
     }
+
+    if (linkedCount === 0) { toast.error("Link at least one coding platform"); return; }
 
     setSaving(true);
     setStep(2);
 
     try {
-      // Link platforms
-      for (const [platform, handle] of Object.entries(handles)) {
-        if (handle.trim()) {
-          await linkPlatformMutation.mutateAsync({ platform, handle: handle.trim() });
-        }
-      }
+      // Save profile + link platforms via edge function
+      const { error: saveErr } = await supabase.functions.invoke("save-profile", {
+        body: {
+          display_name: displayName.trim(),
+          college: college.trim(),
+          leetcode_handle: handles.leetcode.trim() || null,
+          gfg_handle: handles.gfg.trim() || null,
+          hackerrank_handle: handles.hackerrank.trim() || null,
+          onboarded: true,
+        },
+      });
+      if (saveErr) throw saveErr;
 
       // Trigger sync
-      await syncMutation.mutateAsync(undefined);
+      const { error: syncErr } = await supabase.functions.invoke("sync-platform", { body: {} });
+      if (syncErr) console.warn("Sync warning:", syncErr);
 
-      // Mark onboarded
-      const profile = await updateProfile(user!.id, { onboarded: true });
-      setProfile(profile);
+      // Refresh profile in store
+      const { data: freshProfile } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("user_id", user!.id)
+        .single();
+      if (freshProfile) setProfile(freshProfile);
 
       toast.success("Welcome to MRCodersHub!");
       navigate("/dashboard", { replace: true });
-    } catch (err) {
-      toast.error("Sync failed — you can retry from Settings");
-      const profile = await updateProfile(user!.id, { onboarded: true });
-      setProfile(profile);
+    } catch (err: any) {
+      toast.error("Setup failed — you can retry from Settings");
+      // Still mark onboarded so they aren't stuck
+      await supabase.functions.invoke("save-profile", {
+        body: { display_name: displayName.trim(), onboarded: true },
+      });
+      const { data: p } = await supabase.from("profiles").select("*").eq("user_id", user!.id).single();
+      if (p) setProfile(p);
       navigate("/dashboard", { replace: true });
     }
     setSaving(false);
@@ -107,7 +101,6 @@ export default function OnboardingPage() {
           {step === 0 ? "Tell us about yourself" : step === 1 ? "Connect your coding profiles" : "Syncing your data..."}
         </p>
 
-        {/* Progress */}
         <div className="flex gap-2 mb-8">
           {[0, 1, 2].map(s => (
             <div key={s} className={`h-1 flex-1 rounded-full transition-colors ${s <= step ? "bg-primary" : "bg-muted"}`} />
@@ -119,29 +112,16 @@ export default function OnboardingPage() {
             <motion.div key="step0" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="space-y-4">
               <div>
                 <label className="text-xs text-muted-foreground mb-1 block">Display Name</label>
-                <input
-                  value={displayName}
-                  onChange={e => setDisplayName(e.target.value)}
-                  placeholder="Your name"
-                  className="w-full px-3 py-2.5 rounded-lg bg-muted/50 border border-border text-sm text-foreground focus:outline-none focus:border-primary/50 transition-colors"
-                />
+                <input value={displayName} onChange={e => setDisplayName(e.target.value)} placeholder="Your name"
+                  className="w-full px-3 py-2.5 rounded-lg bg-muted/50 border border-border text-sm text-foreground focus:outline-none focus:border-primary/50 transition-colors" />
               </div>
               <div>
                 <label className="text-xs text-muted-foreground mb-1 block">College</label>
-                <input
-                  value={college}
-                  onChange={e => setCollege(e.target.value)}
-                  placeholder="Your college"
-                  className="w-full px-3 py-2.5 rounded-lg bg-muted/50 border border-border text-sm text-foreground focus:outline-none focus:border-primary/50 transition-colors"
-                />
+                <input value={college} onChange={e => setCollege(e.target.value)} placeholder="Your college"
+                  className="w-full px-3 py-2.5 rounded-lg bg-muted/50 border border-border text-sm text-foreground focus:outline-none focus:border-primary/50 transition-colors" />
               </div>
-              <button
-                onClick={handleProfileSave}
-                disabled={saving}
-                className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-semibold flex items-center justify-center gap-2 hover:opacity-90 transition-opacity disabled:opacity-50"
-              >
-                {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-4 h-4" />}
-                Continue
+              <button onClick={handleSaveAndSync} className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-semibold flex items-center justify-center gap-2 hover:opacity-90 transition-opacity">
+                <ArrowRight className="w-4 h-4" /> Continue
               </button>
             </motion.div>
           )}
@@ -153,20 +133,14 @@ export default function OnboardingPage() {
                   <label className="text-xs text-muted-foreground mb-1 flex items-center gap-1.5">
                     <span>{p.icon}</span> {p.label} Handle
                   </label>
-                  <input
-                    value={handles[p.key]}
-                    onChange={e => setHandles(prev => ({ ...prev, [p.key]: e.target.value }))}
+                  <input value={handles[p.key]} onChange={e => setHandles(prev => ({ ...prev, [p.key]: e.target.value }))}
                     placeholder={`Your ${p.label} username`}
-                    className={`w-full px-3 py-2.5 rounded-lg bg-muted/50 border ${p.color} text-sm text-foreground focus:outline-none transition-colors`}
-                  />
+                    className={`w-full px-3 py-2.5 rounded-lg bg-muted/50 border ${p.color} text-sm text-foreground focus:outline-none transition-colors`} />
                 </div>
               ))}
               <p className="text-xs text-muted-foreground text-center">Link at least one platform to appear in rankings</p>
-              <button
-                onClick={handleLinkAndSync}
-                disabled={saving || linkedCount === 0}
-                className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-semibold flex items-center justify-center gap-2 hover:opacity-90 transition-opacity disabled:opacity-50"
-              >
+              <button onClick={handleSaveAndSync} disabled={saving || linkedCount === 0}
+                className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-semibold flex items-center justify-center gap-2 hover:opacity-90 transition-opacity disabled:opacity-50">
                 {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
                 Link & Sync ({linkedCount} platform{linkedCount !== 1 ? "s" : ""})
               </button>
