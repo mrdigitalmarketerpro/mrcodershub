@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { GlassCard } from "@/components/GlassCard";
 import { useAuthStore } from "@/stores/authStore";
 import { usePlatformProfiles, useLinkPlatform, useUnlinkPlatform, useSync } from "@/hooks/usePlatformData";
-import { updateProfile } from "@/lib/api";
+import { supabase } from "@/integrations/supabase/client";
 import { Settings, Save, Check, RefreshCw, Loader2, Trash2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
