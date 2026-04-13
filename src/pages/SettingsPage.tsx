@@ -55,25 +55,36 @@ export default function SettingsPage() {
     if (!user) return;
     setSaving(true);
     try {
-      const updated = await updateProfile(user.id, form);
-      setProfile(updated);
+      // Use edge function for profile + platform saves
+      const saveRes = await supabase.functions.invoke("save-profile", {
+        body: {
+          display_name: form.display_name,
+          college: form.college,
+          leetcode_handle: handles.leetcode.trim() || null,
+          gfg_handle: handles.gfg.trim() || null,
+          hackerrank_handle: handles.hackerrank.trim() || null,
+        },
+      });
 
-      // Link/unlink platforms
-      for (const [platform, handle] of Object.entries(handles)) {
-        const existing = platforms?.find(p => p.platform === platform);
-        if (handle.trim() && !existing) {
-          await linkPlatformMutation.mutateAsync({ platform, handle: handle.trim() });
-        } else if (handle.trim() && existing && existing.handle !== handle.trim()) {
-          await linkPlatformMutation.mutateAsync({ platform, handle: handle.trim() });
-        } else if (!handle.trim() && existing) {
-          await unlinkPlatformMutation.mutateAsync(platform);
-        }
+      if (saveRes.error) {
+        const errMsg = saveRes.data?.error || saveRes.error.message || "Failed to save";
+        console.error("save-profile error:", errMsg);
+        toast.error(errMsg);
+        setSaving(false);
+        return;
+      }
+
+      // Update local state from response
+      if (saveRes.data?.profile) {
+        setProfile(saveRes.data.profile);
       }
 
       setSaved(true);
+      toast.success("Settings saved!");
       setTimeout(() => setSaved(false), 2000);
-    } catch (err) {
-      toast.error("Failed to save");
+    } catch (err: any) {
+      console.error("Settings save error:", err);
+      toast.error(err.message || "Failed to save");
     }
     setSaving(false);
   };
