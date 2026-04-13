@@ -39,7 +39,7 @@ export default function OnboardingPage() {
 
     try {
       // Save profile + link platforms via edge function
-      const { error: saveErr } = await supabase.functions.invoke("save-profile", {
+      const saveRes = await supabase.functions.invoke("save-profile", {
         body: {
           display_name: displayName.trim(),
           college: college.trim(),
@@ -49,11 +49,14 @@ export default function OnboardingPage() {
           onboarded: true,
         },
       });
-      if (saveErr) throw saveErr;
+      if (saveRes.error) {
+        console.error("save-profile error:", saveRes.error);
+        throw new Error(saveRes.data?.error || saveRes.error.message || "Failed to save profile");
+      }
 
       // Trigger sync
-      const { error: syncErr } = await supabase.functions.invoke("sync-platform", { body: {} });
-      if (syncErr) console.warn("Sync warning:", syncErr);
+      const syncRes = await supabase.functions.invoke("sync-platform", { body: {} });
+      if (syncRes.error) console.warn("Sync warning:", syncRes.data?.error || syncRes.error.message);
 
       // Refresh profile in store
       const { data: freshProfile } = await supabase
