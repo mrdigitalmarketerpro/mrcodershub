@@ -62,48 +62,81 @@ async function fetchLeetCode(handle: string): Promise<NormalizedStats> {
   };
 }
 
-// ─── GeeksforGeeks Adapter ───
+// ─── GeeksforGeeks Adapter (official authapi endpoint) ───
 async function fetchGFG(handle: string): Promise<NormalizedStats> {
-  const res = await fetch(`https://geeks-for-geeks-stats-api.vercel.app/?userName=${handle}`);
+  const url = `https://authapi.geeksforgeeks.org/api-get/user-profile-info/?handle=${encodeURIComponent(handle)}&article_count=0`;
+  const res = await fetch(url, {
+    headers: {
+      "User-Agent": "Mozilla/5.0 (compatible; MRCodersHub/1.0)",
+      "Accept": "application/json",
+    },
+  });
   if (!res.ok) throw new Error(`GFG API error: ${res.status}`);
-  const json = await res.json();
-  if (json.error) throw new Error(`GFG user '${handle}' not found`);
+  const json = await res.json().catch(() => null);
+  if (!json?.data || !json.data.name) throw new Error(`GFG user '${handle}' not found`);
 
-  const totalSolved = parseInt(json.totalProblemsSolved || "0", 10);
-  const easy = parseInt(json.Easy || json.school || "0", 10);
-  const medium = parseInt(json.Medium || json.basic || "0", 10);
-  const hard = parseInt(json.Hard || "0", 10);
-
-  return {
-    problems_solved: totalSolved || (easy + medium + hard),
-    contest_rating: parseInt(json.contestRating || "0", 10),
-    contests_attended: parseInt(json.contestsAttended || "0", 10),
-    easy_solved: easy, medium_solved: medium, hard_solved: hard,
-    contribution_score: parseInt(json.codingScore || "0", 10),
-    raw_payload: json,
-  };
-}
-
-// ─── HackerRank Adapter ───
-async function fetchHackerRank(handle: string): Promise<NormalizedStats> {
-  const res = await fetch(`https://www.hackerrank.com/rest/hackers/${handle}/badges`);
-  if (!res.ok) throw new Error(`HackerRank API error: ${res.status}`);
-  const badges = await res.json();
-
-  const subRes = await fetch(`https://www.hackerrank.com/rest/hackers/${handle}/submission_histories`);
-  const submissions = subRes.ok ? await subRes.json() : {};
-
-  let totalSolved = 0;
-  for (const key in submissions) {
-    totalSolved += parseInt(submissions[key] || "0", 10);
-  }
+  const d = json.data;
+  const totalSolved = parseInt(String(d.total_problems_solved ?? 0), 10);
+  const score = parseInt(String(d.score ?? 0), 10);
 
   return {
     problems_solved: totalSolved,
-    contest_rating: 0, contests_attended: 0,
-    easy_solved: 0, medium_solved: 0, hard_solved: 0,
-    contribution_score: (Array.isArray(badges.models) ? badges.models.length : 0) * 50,
-    raw_payload: { badges: badges.models || [], submissions },
+    contest_rating: 0,
+    contests_attended: 0,
+    easy_solved: 0,
+    medium_solved: 0,
+    hard_solved: 0,
+    contribution_score: score,
+    raw_payload: d,
+  };
+}
+
+// ─── HackerRank Adapter (public profile + scores endpoints) ───
+async function fetchHackerRank(handle: string): Promise<NormalizedStats> {
+  const headers = { "User-Agent": "Mozilla/5.0 (compatible; MRCodersHub/1.0)" };
+
+  const profRes = await fetch(
+    `https://www.hackerrank.com/rest/contests/master/hackers/${encodeURIComponent(handle)}/profile`,
+    { headers },
+  );
+  if (!profRes.ok) throw new Error(`HackerRank API error: ${profRes.status}`);
+  const profJson = await profRes.json().catch(() => null);
+  if (!profJson?.model?.username) throw new Error(`HackerRank user '${handle}' not found`);
+
+  const scoresRes = await fetch(
+    `https://www.hackerrank.com/rest/hackers/${encodeURIComponent(handle)}/scores_elo`,
+    { headers },
+  );
+  const scores = scoresRes.ok ? await scoresRes.json().catch(() => []) : [];
+
+  let totalScore = 0;
+  let medals = 0;
+  if (Array.isArray(scores)) {
+    for (const t of scores) {
+      totalScore += Number(t?.practice?.score) || 0;
+      const m = t?.contest?.medals;
+      if (m) medals += (m.gold || 0) + (m.silver || 0) + (m.bronze || 0);
+    }
+  }
+
+  const badgesRes = await fetch(
+    `https://www.hackerrank.com/rest/hackers/${encodeURIComponent(handle)}/badges`,
+    { headers },
+  );
+  const badges = badgesRes.ok ? await badgesRes.json().catch(() => ({ models: [] })) : { models: [] };
+  const solvedFromBadges = Array.isArray(badges.models)
+    ? badges.models.reduce((s: number, b: any) => s + (Number(b?.solved) || 0), 0)
+    : 0;
+
+  return {
+    problems_solved: solvedFromBadges,
+    contest_rating: Math.round(totalScore),
+    contests_attended: medals,
+    easy_solved: 0,
+    medium_solved: 0,
+    hard_solved: 0,
+    contribution_score: Array.isArray(badges.models) ? badges.models.length * 50 : 0,
+    raw_payload: { profile: profJson.model, scores, badges: badges.models || [] },
   };
 }
 
